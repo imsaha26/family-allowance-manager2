@@ -1,0 +1,198 @@
+name: Deploy to Testnet
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-testnet
+  cancel-in-progress: false  # Never cancel a running deploy
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  # 1. Build & Deploy Contracts to Testnet
+  # ────────────────────────────────────────────────────────────────────────────
+  deploy-contracts:
+    name: "Deploy Soroban Contracts → Testnet"
+    runs-on: ubuntu-latest
+    outputs:
+      registry_id: ${{ steps.deploy.outputs.registry_id }}
+      distributor_id: ${{ steps.deploy.outputs.distributor_id }}
+      xlm_sac_id: ${{ steps.deploy.outputs.xlm_sac_id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            contracts/target
+          key: ${{ runner.os }}-cargo-deploy-${{ hashFiles('contracts/Cargo.lock') }}
+
+      - name: Install Stellar CLI
+        run: cargo install --locked stellar-cli --features opt
+
+      - name: Configure deployer keypair
+        run: |
+          mkdir -p ~/.config/stellar
+          stellar keys add deployer --secret-key "${{ secrets.STELLAR_DEPLOYER_SECRET_KEY }}"
+        env:
+          STELLAR_DEPLOYER_SECRET_KEY: ${{ secrets.STELLAR_DEPLOYER_SECRET_KEY }}
+
+      - name: Build contracts
+        working-directory: contracts
+        run: stellar contract build
+
+      - name: Deploy & initialize contracts
+        id: deploy
+        working-directory: contracts
+        run: |
+          # Deploy family_registry
+          REGISTRY_ID=$(stellar contract deploy \
+            --wasm target/wasm32v1-none/release/family_registry.wasm \
+            --source deployer \
+            --network testnet \
+            --ignore-checks 2>/dev/null | tail -1)
+          echo "registry_id=$REGISTRY_ID" >> "$GITHUB_OUTPUT"
+          echo "✅ family_registry: $REGISTRY_ID"
+
+          # Initialize family_registry
+          ADMIN=$(stellar keys address deployer)
+          stellar contract invoke \
+            --id "$REGISTRY_ID" \
+            --source deployer \
+            --network testnet \
+            -- initialize --admin "$ADMIN"
+
+          # Get XLM SAC ID
+          XLM_SAC=$(stellar contract id asset --asset native --network testnet)
+          echo "xlm_sac_id=$XLM_SAC" >> "$GITHUB_OUTPUT"
+          echo "✅ XLM SAC: $XLM_SAC"
+
+          # Deploy allowance_distributor
+          DISTRIBUTOR_ID=$(stellar contract deploy \
+            --wasm target/wasm32v1-none/release/allowance_distributor.wasm \
+            --source deployer \
+            --network testnet \
+            --ignore-checks 2>/dev/null | tail -1)
+          echo "distributor_id=$DISTRIBUTOR_ID" >> "$GITHUB_OUTPUT"
+          echo "✅ allowance_distributor: $DISTRIBUTOR_ID"
+
+          # Initialize allowance_distributor
+          stellar contract invoke \
+            --id "$DISTRIBUTOR_ID" \
+            --source deployer \
+            --network testnet \
+            -- initialize \
+            --admin "$ADMIN" \
+            --registry_contract "$REGISTRY_ID" \
+            --token_contract "$XLM_SAC"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 2. Generate TypeScript Bindings
+  # ────────────────────────────────────────────────────────────────────────────
+  generate-bindings:
+    name: "Generate TS Bindings"
+    needs: deploy-contracts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Stellar CLI
+        run: cargo install --locked stellar-cli --features opt
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate family_registry bindings
+        run: |
+          stellar contract bindings typescript \
+            --contract-id "${{ needs.deploy-contracts.outputs.registry_id }}" \
+            --output-dir packages/family_registry \
+            --overwrite
+          (cd packages/family_registry && npm install && npm run build)
+
+      - name: Generate allowance_distributor bindings
+        run: |
+          stellar contract bindings typescript \
+            --contract-id "${{ needs.deploy-contracts.outputs.distributor_id }}" \
+            --output-dir packages/allowance_distributor \
+            --overwrite
+          (cd packages/allowance_distributor && npm install && npm run build)
+
+      - name: Commit bindings
+        run: |
+          git config --local user.email "ci@family-allowance-manager.app"
+          git config --local user.name "CI Bot"
+          git add packages/
+          git commit -m "ci: regenerate contract bindings [skip ci]" || echo "No changes"
+          git push
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 3. Deploy Frontend to Vercel
+  # ────────────────────────────────────────────────────────────────────────────
+  deploy-frontend:
+    name: "Deploy Next.js → Vercel"
+    needs: [deploy-contracts, generate-bindings]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+
+      - name: Build frontend
+        working-directory: frontend
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          NEXT_PUBLIC_STELLAR_NETWORK: testnet
+          NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          NEXT_PUBLIC_SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
+          NEXT_PUBLIC_HORIZON_URL: https://horizon-testnet.stellar.org
+          NEXT_PUBLIC_FAMILY_REGISTRY_CONTRACT_ID: ${{ needs.deploy-contracts.outputs.registry_id }}
+          NEXT_PUBLIC_ALLOWANCE_DISTRIBUTOR_CONTRACT_ID: ${{ needs.deploy-contracts.outputs.distributor_id }}
+          NEXT_PUBLIC_XLM_SAC_CONTRACT_ID: ${{ needs.deploy-contracts.outputs.xlm_sac_id }}
+          NEXT_PUBLIC_STELLAR_EXPLORER_URL: https://stellar.expert/explorer/testnet
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+
+      - name: Deploy to Vercel production
+        working-directory: frontend
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Comment deployment URL
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Deployed to Vercel: ' + process.env.VERCEL_URL
+            })

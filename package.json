@@ -1,0 +1,44 @@
+{
+  "name": "family-allowance-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Decentralized family allowance management platform on Stellar/Soroban",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm run test",
+    "test:contracts": "cd contracts && cargo test",
+    "lint": "cd frontend && npm run lint",
+    "typecheck": "cd frontend && npm run typecheck",
+    "contracts:build": "cd contracts && stellar contract build",
+    "contracts:test": "cd contracts && cargo test",
+    "contracts:fmt": "cd contracts && cargo fmt",
+    "contracts:clippy": "cd contracts && cargo clippy -- -D warnings",
+    "deploy:local": "bash scripts/deploy-local.sh",
+    "deploy:testnet": "bash scripts/deploy-testnet.sh",
+    "bot:start": "node scripts/distribution-bot.js",
+    "init": "node scripts/initialize.js"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "packages/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/family-allowance-manager2.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "stellar",
+    "soroban",
+    "blockchain",
+    "smart-contracts",
+    "defi",
+    "family-finance",
+    "web3"
+  ]
+}

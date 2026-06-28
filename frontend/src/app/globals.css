@@ -1,0 +1,272 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ────────────────────────────────────────────────────────────
+   Google Fonts — Inter + JetBrains Mono
+   ──────────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* ────────────────────────────────────────────────────────────
+   Design System — CSS Variables
+   Dark mode is the default (stellar theme)
+   ──────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* ── Light mode (fallback) ── */
+    --background: 220 18% 97%;
+    --foreground: 220 68% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 68% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 68% 8%;
+
+    --primary: 220 85% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 18% 93%;
+    --secondary-foreground: 220 68% 20%;
+
+    --muted: 220 14% 90%;
+    --muted-foreground: 220 14% 45%;
+
+    --accent: 38 88% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 88%;
+    --input: 220 14% 88%;
+    --ring: 220 85% 52%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* ── Dark mode (primary / default) ── */
+    --background: 220 68% 5%;
+    --foreground: 220 18% 95%;
+
+    --card: 220 60% 8%;
+    --card-foreground: 220 18% 95%;
+
+    --popover: 220 60% 8%;
+    --popover-foreground: 220 18% 95%;
+
+    --primary: 220 85% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 40% 12%;
+    --secondary-foreground: 220 18% 85%;
+
+    --muted: 220 40% 14%;
+    --muted-foreground: 220 14% 55%;
+
+    --accent: 38 88% 55%;
+    --accent-foreground: 220 68% 5%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 40% 14%;
+    --input: 220 40% 14%;
+    --ring: 220 85% 60%;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Base Styles
+   ──────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(
+        ellipse 80% 50% at 50% -20%,
+        hsl(220 85% 60% / 0.08),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 80% 80%,
+        hsl(38 88% 55% / 0.04),
+        transparent
+      );
+    background-attachment: fixed;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  /* Code / mono */
+  code, pre, kbd, samp {
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    @apply text-sm;
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary/30 text-foreground;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 100px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Component Utilities
+   ──────────────────────────────────────────────────────────── */
+@layer components {
+  /* Glass card effect */
+  .glass-card {
+    @apply rounded-xl border border-border/50;
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.05),
+      0 4px 24px 0 hsl(220 68% 4% / 0.4);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(38 88% 55%) 100%
+    );
+  }
+
+  /* Glow button */
+  .btn-glow {
+    @apply relative overflow-hidden;
+    box-shadow: 0 0 24px -4px hsl(var(--primary) / 0.5);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 32px -2px hsl(var(--primary) / 0.7);
+  }
+
+  /* Transaction status badges */
+  .status-pending {
+    @apply bg-yellow-500/15 text-yellow-400 border border-yellow-500/25;
+  }
+
+  .status-processing {
+    @apply bg-blue-500/15 text-blue-400 border border-blue-500/25;
+  }
+
+  .status-confirmed {
+    @apply bg-green-500/15 text-green-400 border border-green-500/25;
+  }
+
+  .status-failed {
+    @apply bg-red-500/15 text-red-400 border border-red-500/25;
+  }
+
+  .status-cancelled {
+    @apply bg-slate-500/15 text-slate-400 border border-slate-500/25;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply rounded-md;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.2) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Sidebar nav link */
+  .nav-link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
+           text-muted-foreground transition-all duration-150
+           hover:bg-muted hover:text-foreground;
+  }
+
+  .nav-link.active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  /* Activity feed item pulse */
+  .activity-new {
+    animation: fade-in 0.4s ease-out;
+  }
+
+  /* Hash display */
+  .tx-hash {
+    @apply font-mono text-xs text-muted-foreground truncate
+           hover:text-foreground transition-colors cursor-pointer;
+  }
+
+  /* Page container */
+  .page-container {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Utility Overrides
+   ──────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Hide scrollbar but keep scrolling */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Text balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Transition preset */
+  .transition-base {
+    @apply transition-all duration-200 ease-in-out;
+  }
+}

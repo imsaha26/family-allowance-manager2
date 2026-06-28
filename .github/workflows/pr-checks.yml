@@ -1,0 +1,128 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  # 1. Soroban Contract Checks
+  # ────────────────────────────────────────────────────────────────────────────
+  contracts:
+    name: "Contracts — Build, Test, Lint"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+          components: rustfmt, clippy
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            contracts/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('contracts/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Stellar CLI
+        run: cargo install --locked stellar-cli --features opt
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run contract tests
+        run: cargo test --all-features -- --nocapture
+
+      - name: Build contracts (WASM)
+        run: stellar contract build
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 2. Frontend Checks
+  # ────────────────────────────────────────────────────────────────────────────
+  frontend:
+    name: "Frontend — TypeCheck, Lint, Test, Build"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npm run typecheck
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Run Vitest
+        run: npm run test
+        env:
+          NEXT_PUBLIC_STELLAR_NETWORK: testnet
+          NEXT_PUBLIC_FAMILY_REGISTRY_CONTRACT_ID: CTEST00000000000000000000000000000000000000000000000000
+          NEXT_PUBLIC_ALLOWANCE_DISTRIBUTOR_CONTRACT_ID: CTEST11111111111111111111111111111111111111111111111111
+          NEXT_PUBLIC_XLM_SAC_CONTRACT_ID: CTEST22222222222222222222222222222222222222222222222222
+
+      - name: Next.js build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_STELLAR_NETWORK: testnet
+          NEXT_PUBLIC_SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
+          NEXT_PUBLIC_HORIZON_URL: https://horizon-testnet.stellar.org
+          NEXT_PUBLIC_FAMILY_REGISTRY_CONTRACT_ID: CTEST00000000000000000000000000000000000000000000000000
+          NEXT_PUBLIC_ALLOWANCE_DISTRIBUTOR_CONTRACT_ID: CTEST11111111111111111111111111111111111111111111111111
+          NEXT_PUBLIC_XLM_SAC_CONTRACT_ID: CTEST22222222222222222222222222222222222222222222222222
+          NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          NEXT_PUBLIC_STELLAR_EXPLORER_URL: https://stellar.expert/explorer/testnet
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 3. Security scan (secrets detection)
+  # ────────────────────────────────────────────────────────────────────────────
+  security:
+    name: "Security — Secret Scan"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog — secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
