@@ -80,6 +80,14 @@ vi.mock("@/store/transaction.store", () => ({
 
 vi.mock("@/hooks/useFamilyRegistry", () => ({
   useFamilyRegistry: vi.fn(() => ({
+    family: {
+      id: 1,
+      name: "Smiths",
+      admin: "GBADMIN00000000000000000000000000000000000000000000000",
+      created_at: 0n,
+      active: true,
+    },
+    isLoadingFamily: false,
     members: [
       {
         address: "GBCHILD00000000000000000000000000000000000000000000000",
@@ -193,7 +201,7 @@ describe("Frontend Dashboard & Pages Suite", () => {
   test("2. renders Dashboard showing stats placeholders", () => {
     renderWithProviders(<DashboardPage />);
     expect(screen.getByText(/Active Schedules/i)).toBeInTheDocument();
-    expect(screen.getByText(/Pending Payments/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pending Distributions/i)).toBeInTheDocument();
   });
 
   test("3. renders Wallet connection details in Settings Page when connected", () => {

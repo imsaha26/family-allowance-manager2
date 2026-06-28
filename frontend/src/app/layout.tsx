@@ -91,6 +91,7 @@ export const viewport: Viewport = {
 };
 
 import Providers from "./providers";
+import NavigationShell from "@/components/NavigationShell";
 
 // ── Root Layout ───────────────────────────────────────────────────────────────
 export default function RootLayout({
@@ -105,7 +106,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background font-sans antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <NavigationShell>{children}</NavigationShell>
+        </Providers>
       </body>
     </html>
   );

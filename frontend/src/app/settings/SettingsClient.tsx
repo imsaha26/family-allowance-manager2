@@ -41,12 +41,18 @@ export default function SettingsClient() {
   const [spendingLimitInput, setSpendingLimitInput] = useState("");
   const [savingsGoalInput, setSavingsGoalInput] = useState("");
 
+  const handleDisconnect = () => {
+    disconnectWallet();
+    toast.success("Wallet disconnected successfully");
+  };
+
   const handleConnect = async (id: WalletId) => {
+    const toastId = toast.loading(`Connecting to ${id}...`);
     try {
       await connectWallet(id);
-      toast.success(`Connected to ${id} wallet!`);
+      toast.success(`Connected to ${id} wallet successfully!`, { id: toastId });
     } catch (err: any) {
-      toast.error(`Wallet connection failed: ${err.message}`);
+      toast.error(`Wallet connection failed: ${err.message}`, { id: toastId });
     }
   };
 
@@ -133,7 +139,7 @@ export default function SettingsClient() {
                     </p>
                   </div>
                   <button
-                    onClick={disconnectWallet}
+                    onClick={handleDisconnect}
                     className="px-4 py-2 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition-all shrink-0 self-start sm:self-center"
                   >
                     Disconnect
