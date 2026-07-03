@@ -825,19 +825,15 @@ See [`docs/security.md`](./docs/security.md) for the full security model.
 ---
 
 ## 📸 Screenshots
+- 1st Deployed Contract:
+  Network : Stellar Testnet
+- Contract Address : CCJSJJKNSZAMXNRCD6L3RU5DE6DPHBZXKLJCN7FGPXUZ7T2UDLGVOHRL
+- Contract Explorar : https://lab.stellar.org/smart-contracts/contract-explorer?$=network$id=testnet&label=Testnet&horizonUrl=https:////horizon-testnet.stellar.org&rpcUrl=https:////soroban-testnet.stellar.org&passphrase=Test%20SDF%20Network%20/;%20September%202015;&smartContracts$explorer$contractId=CCJSJJKNSZAMXNRCD6L3RU5DE6DPHBZXKLJCN7FGPXUZ7T2UDLGVOHRL;;
 
-> _Screenshots will be added after the frontend is deployed._
+<img width="1920" height="1080" alt="Screenshot (489)" src="https://github.com/user-attachments/assets/52edc0bb-371b-4948-bdd2-d7e7f3c8cd36" />
 
-| Page | Preview |
-|------|---------|
-| Landing Page | _(coming soon)_ |
-| Dashboard | _(coming soon)_ |
-| Activity Feed | _(coming soon)_ |
-| Transaction Center | _(coming soon)_ |
-| Analytics | _(coming soon)_ |
-| Settings | _(coming soon)_ |
 
----
+
 
 ## 🎬 Demo
 
