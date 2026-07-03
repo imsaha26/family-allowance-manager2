@@ -858,7 +858,7 @@ See [`docs/security.md`](./docs/security.md) for the full security model.
 > _Live demo link will be added after Vercel deployment._
 
 - **Live App:** https://family-allowance-manager2.vercel.app/
-- **Demo Video:** _(coming soon)_
+- **Demo Video:** https://drive.google.com/file/d/1tbdW7Fm_YTsZeO4iiAHpXryCnmPibFLN/view?usp=drive_link
 - **Test Wallet:** Use [Stellar Friendbot](https://friendbot.stellar.org) to fund a testnet account
 
 ---
