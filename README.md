@@ -832,12 +832,17 @@ See [`docs/security.md`](./docs/security.md) for the full security model.
 
 <img width="1920" height="1080" alt="Screenshot (489)" src="https://github.com/user-attachments/assets/52edc0bb-371b-4948-bdd2-d7e7f3c8cd36" />
 
--2nd Deployed Contract:
+- 2nd Deployed Contract:
  Network : Stellar Testnet
 - Contract Address : CBV5BQIUB4XRMMQVTDVZURMPILV5EFSXKHHKHS7JX4SOGIMBC275YEIR
 - Contract Explorer : https://lab.stellar.org/smart-contracts/contract-explorer?$=network$id=testnet&label=Testnet&horizonUrl=https:////horizon-testnet.stellar.org&rpcUrl=https:////soroban-testnet.stellar.org&passphrase=Test%20SDF%20Network%20/;%20September%202015;&smartContracts$explorer$contractId=CBV5BQIUB4XRMMQVTDVZURMPILV5EFSXKHHKHS7JX4SOGIMBC275YEIR;;
 
 <img width="1920" height="1080" alt="Screenshot (480)" src="https://github.com/user-attachments/assets/38405b45-7ba8-4f7c-8379-a7256aed5866" />
+
+## 📸 Screenshots of the UI
+<img width="1920" height="1080" alt="Screenshot (481)" src="https://github.com/user-attachments/assets/88457b31-b911-4d21-b780-74113ce7a30e" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/1df2abe0-7116-409c-8a5f-aee4cb66a9b0" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/619302d7-4430-4c6c-8f3b-c21ecc109108" />
 
 
 
